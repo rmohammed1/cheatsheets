@@ -1,0 +1,284 @@
+user_cols = ['user_id', 'age', 'gender', 'occupation', 'zip_code']
+df = pd.read_table('http://bit.ly/movieusers', sep='|', header=None, names=user_cols)
+df.head()
+
+df.describe()
+df.describe(include=['object'])
+df.describe(exclude=[np.number])
+df.describe(include=['category'])
+df.genre.describe()
+df.describe().loc['min':'max']
+df.describe().loc['min':'max', 'Pclass':'Parch']
+
+df.info()
+
+df.shape
+df.columns
+df.nunique()
+df[‘gender’].unique()
+
+df['City'] 
+df.City
+
+df['Location'] = df.City + ', ' + df.State
+
+read in only a subset of the columns
+df = pd.read_csv('http://bit.ly/dfreports', usecols=['City', 'State'])
+or 
+df = pd.read_csv('http://bit.ly/dfreports', usecols=[0, 4])
+
+specify how many rows to read
+df = pd.read_csv('http://bit.ly/dfreports', nrows=3)
+
+pd.set_option(‘display.max_rows’, 100)
+Correlation and Visualization
+cor = df.corr()
+sns.heatmap(cor, xticklabels=cor.columns, yticklabels= cor.columns, annot=True)
+sns.pairplot(df)
+sns.relplot(x=’score’, y=’gpa’, hue=’gender’, data=df)
+sns.distplot(df[‘score’])
+sns.distplot(df[‘score’], bins = 5)
+sns.catplot(x=’score’, kind=’box’, data=df)
+https://www.youtube.com/watch?v=-o3AxdVcUtQ
+sns.heatmap(df.isnull(), yticklablels=False, cbar= False, cmap=’viridis’ )
+df.isnull().sum()
+sns.heatmap(df.isnull(), cbar= False)
+sns.countplot(x=’survived’, data=df)
+sns.countplot(x=’survived’, hue=’gender’, data=df)
+sns.boxplot(x=’pclass’, y=’age’, data=df)
+rename columns
+df.rename(columns={'Colors Reported':'Colors_Reported', 'Shape Reported':'Shape_Reported'}, inplace=True)
+or
+df_cols = ['city', 'colors reported', 'shape reported', 'state', 'time']
+df.columns = df_cols
+or
+df = pd.read_csv('http://bit.ly/dfreports', header=0, names=df_cols)
+
+df.columns = df.columns.str.replace(' ', '_')
+
+drop / remove columns
+df.drop('Colors Reported', axis=1, inplace=True)
+df.drop(['City', 'State'], axis=1, inplace=True)
+row - 
+df.drop([0, 1], axis=0, inplace=True)
+
+only include numeric columns in the DataFrame
+df.select_dtypes(include=[np.number]).dtypes
+
+
+sort 
+df.title.sort_values().head()
+df.title.sort_values(ascending=False).head()
+df.sort_values('title').head()
+df.sort_values(['content_rating', 'duration']).head()
+
+filter rows by column value and multiple filter
+is_long = df.duration >= 200
+df[is_long]
+or 
+df[df.duration >= 200]
+df[df.duration >= 200].genre
+or
+df.loc[df.duration >= 200, 'genre']
+
+df[(df.duration >=200) & (df.genre == 'Drama')]
+
+df[(df.genre == 'Crime') | (df.genre == 'Drama') | (df.genre == 'Action')].head(10)
+or 
+df[df.genre.isin(['Crime', 'Drama', 'Action'])].head(10)
+
+PlayerMaxPoints = df[df.PTS == df.PTS.max()]
+string methods
+df.item_name.str.upper().head()
+df.item_name.str.contains('Chicken').head()
+
+df[df.item_name.str.contains('Chicken')].head()
+
+chain string
+df.item.str.replace('[', '').str.replace(']', '').head()
+regex
+df.item.str.replace('[\[\]]', '').head()
+
+change data type – dtype
+df.dtypes
+df['beer_servings'] = df.beer_servings.astype(float)
+or
+df = pd.read_csv('http://bit.ly/dfbycountry', dtype={'beer_servings':float})
+
+df.item_price.str.replace('$', '').astype(float).mean()
+df.item_name.str.contains('Chicken').head()
+
+df = pd.read_csv('http://bit.ly/drinksbycountry', dtype={'continent':'category'})
+df = drinks.astype({'beer_servings':'float', 'spirit_servings':'float'})
+
+groupby
+df.beer_servings.mean()
+df[df.continent=='Africa'].beer_servings.mean()
+
+df.groupby('continent').beer_servings.mean()
+df.groupby('continent').beer_servings.max()
+
+df.groupby('continent').beer_servings.agg(['count', 'mean', 'min', 'max'])
+
+df.groupby('continent').mean().plot(kind='bar')
+
+df.groupby(['Sex', 'Pclass']).Survived.mean().unstack()
+
+df.groupby('Tm').get_group('LAL')
+
+using groupby mean with fillna --- df[‘age’].fillna(df.groupby(‘job’)[‘age’].transform(‘median’), inplace=True)
+
+Max
+Complex case – 
+Which player has the highest values for: 
+	◦ 	damage_done ------ df.loc[df['damage_done'].idxmax(), 'handle']
+	◦ 	healing_done ------ df.loc[df['healing_done'].idxmax(), 'handle']
+	◦ 	player_performance_metric ---- df.loc[df['player_performance_metric'].idxmax(), 'handle']
+	◦ 	player_dkp_gen_rate ------ df.loc[df['player_dkp_gen_rate'].idxmax(), 'handle']
+A bit more:
+print('Maximum damage done by ----->', df.loc[df['damage_done'].idxmax(), 'handle'],'(',df['damage_done'].max(),')')
+Exploring a non-numeric Series
+
+df.genre.describe()
+df.genre.value_counts()
+df.genre.value_counts(normalize=True)
+
+cross-tabulation of two Series
+pd.crosstab(df.genre, df.content_rating)
+
+df.duration.plot(kind='hist')
+df.genre.value_counts().plot(kind='bar')
+
+missing or nan values
+isnull, notnull
+df.isnull().sum()
+df[df.City.isnull()].head()
+df.shape
+
+df.dropna(how='any').shape
+df.dropna(how='all').shape
+
+df.dropna(subset=['City', 'Shape Reported'], how='any').shape
+df.dropna(subset=['City', 'Shape Reported'], how='all').shape
+
+df.dropna(axis='columns').head()
+df.dropna(thresh=len(df)*0.9, axis='columns').head()
+
+df['Shape Reported'].value_counts().head()
+df['Shape Reported'].value_counts(dropna=False).head()
+
+df['Shape Reported'].fillna(value='VARIOUS', inplace=True)
+df['Shape Reported'].value_counts().head()
+
+pd.to_numeric(df.col_three, errors='coerce')
+pd.to_numeric(df.col_three, errors='coerce').fillna(0)
+
+df.isna().sum()
+index
+df.index
+df.set_index('country', inplace=True)
+df.index
+df.loc['Brazil', 'beer_servings']
+df.index.name = None
+df.reset_index(inplace=True)
+df.describe().loc['25%', 'beer_servings']
+
+df.continent.value_counts().index
+df.continent.value_counts().values
+
+df.continent.value_counts()['Africa']
+df.continent.value_counts().sort_values()
+df.continent.value_counts().sort_index()
+
+people = pd.Series([3000000, 85000], index=['Albania', 'Andorra'], name='population')
+
+concatenate the DataFrame with a Series (aligns by the index)
+pd.concat([df, people], axis=1).head()
+
+select multiple rows and columns 
+df.loc[0, :]
+df.loc[[0, 1, 2], :]
+df.loc[0:2, :]
+df.loc[0:2]
+df.loc[0:2, 'City']
+df.loc[0:2, ['City', 'State']]
+df.loc[df.City=='Oakland', 'State']
+df.iloc[[0, 1], [0, 3]]
+df.iloc[0:2, 0:4]
+df.iloc[0:2, :]
+
+index
+df.ix['Albania', 0]
+df.ix[1, 'beer_servings']
+df.ix['Albania':'Andorra', 0:2]
+df.ix[0:2, 0:2]
+
+faster
+df.info(memory_usage='deep')
+df.memory_usage(deep=True)
+df['continent'] = df.continent.astype('category')
+
+df = pd.DataFrame({'ID':[100, 101, 102, 103], 'quality':['good', 'very good', 'good', 'excellent']})
+df.sort_values('quality')
+df['quality'] = df.quality.astype('category', categories=['good', 'very good', 'excellent'], ordered=True)
+df.sort_values('quality')
+df.loc[df.quality > 'good', :]
+
+
+
+unique
+df.genre.unique()
+df[df.genre.isin(['Action', 'Drama', 'Western'])].head()
+df[~df.genre.isin(['Action', 'Drama', 'Western'])].head()
+
+largest 
+counts = df.genre.value_counts()
+counts.nlargest(5)
+counts.nlargest(3).index
+df[df.genre.isin(counts.nlargest(3).index)].head()
+
+Split a string into multiple columns
+df.name.str.split(' ', expand=True)
+df[['first', 'middle', 'last']] = df.name.str.split(' ', expand=True)
+df.location.str.split(', ', expand=True)
+
+multiple aggregations
+df.groupby('continent').beer_servings.mean()
+df.groupby('continent').beer_servings.agg(['mean', 'min', 'max'])
+df.beer_servings.agg(['mean', 'min', 'max'])
+df.agg(['mean', 'min', 'max'])
+
+Expand a Series of lists into a DataFrame
+df_new = df.col_two.apply(pd.Series)
+pd.concat([df, df_new], axis='columns')
+
+pivot table
+df.pivot_table(index='Sex', columns='Pclass', values='Survived', aggfunc='mean')
+df.pivot_table(index='Sex', columns='Pclass', values='Survived', aggfunc='count', margins=True)
+
+Convert continuous data into categorical data
+pd.cut(df.Age, bins=[0, 18, 25, 99], labels=['child', 'young adult', 'adult'])
+
+Embarked = pd.get_dummies(df[‘Embarked’], drop_first=True)
+Gender = pd.get_dummies(df[‘Gender’], drop_first=True)
+df.drop([‘Embarked’, ‘Gender’], axis=1, inplace=True)
+df = pd.concat([df, Embarked, Gender])
+
+
+Formatting
+pd.set_option('display.float_format', '{:.2f}'.format)
+pd.reset_option('display.float_format')
+
+format_dict = {'Date':'{:%m/%d/%y}', 'Close':'${:.2f}', 'Volume':'{:,}'}
+df.style.format(format_dict)
+
+(stocks.style.format(format_dict).hide_index().highlight_min('Close', color='red').highlight_max('Close', color='lightgreen'))
+
+(stocks.style.format(format_dict).hide_index().background_gradient(subset='Volume', cmap='Blues'))
+
+(stocks.style.format(format_dict).hide_index().bar('Volume', color='lightblue', align='zero').set_caption('Stock Prices from October 2016'))
+
+pandas_profiling.ProfileReport(titanic)
+
+Reference 
+https://github.com/justmarkham/pandas-videos/blob/master/pandas.ipynb
